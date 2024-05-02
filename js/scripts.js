@@ -1,10 +1,14 @@
-const url = "htttps://jsonplaceholder.typicode.co/posts"
+const url = "https://jsonplaceholder.typicode.com/posts"
 const loadingElement = document.querySelector("#loading")
-const postsContainer = document.querySelector("posts-container");
+const postsContainer = document.querySelector("#posts-container");
 
 const postPage = document.querySelector("#post")
 const postContainer =document.querySelector("#post-container");
-const commentsContainer = document.querySelector("#coments-container");
+const commentsContainer = document.querySelector("#comments-container");
+
+const commentForm = document.querySelector("#comment-form")
+const emailInput = document.querySelector("#email")
+const bodyInput = document.querySelector("#body")
 
 
 // Get id from url
@@ -28,7 +32,7 @@ async function getAllPosts(){
         title.innerText = post.title;
         body.innerText = post.body;
         link.innerText = "Ler"
-        link.setAttribute("href",'/post.html?id=${post.id}');
+        link.setAttribute("href",`./post.html?id=${post.id}`);
 
         div.appendChild(title);
         div.appendChild(body);
@@ -38,19 +42,76 @@ async function getAllPosts(){
 }
 //Get individual post
 async function getPost(id){
-    const [responsePost, responseComents] = await Promise.all([
-        fetch('${url}/${id}'),
-        fetch('${url}/${id}/coments')
+    const [responsePost, responseComments] = await Promise.all([
+        fetch(`${url}/${id}`),
+        fetch(`${url}/${id}/comments`)
     ])
 
     const dataPost = await responsePost.json()
-    const dataComents = await responseComents.json()
+    const dataComments = await responseComments.json()
     loadingElement.classList.add("hide");
     postPage.classList.remove("hide");
+
+    const title = document.createElement("h1");
+    const body = document.createElement("p");
+
+    title.innerText = dataPost.title;
+    body.innerText = dataPost.body;
+
+    postContainer.appendChild(title);
+    postContainer.appendChild(body);
+
+    dataComments.map((comment) => {
+        createComment(comment);
+    })
+
+}
+
+function createComment(comment)
+{
+    const div = document.createElement("div");
+    const email = document.createElement("h3");
+    const commentBody = document.createElement("p");
+
+    email.innerText = comment.email;
+    commentBody.innerText = comment.body;
+
+    div.appendChild(email);
+    div.appendChild(commentBody);
+
+    commentsContainer.appendChild(div);
+}
+
+//POST A COMMENT
+async function postComment(comment){
+    const response = await fetch(`${url}/${postId}/comments`,{
+        method: "POST",
+        body: comment,
+        headers: {
+            "Content-type": "application/json",
+        }
+    })
+    const data = await response.json();
+    console.log(data);
+
 }
 
 if(!postId){
     getAllPosts();
 }else {
     getPost(postId);
+
+    //add eventt to comment flow-from: 
+    commentForm.addEventListener("submit",(event) => {
+        event.preventDefault();
+        let comment = {
+            email: emailInput.value,
+            body: bodyInput.value,
+        }
+        
+    })
+        comment = JSON.stringify(comment);
+        postComment(comment);
+        
+
 }
